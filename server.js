@@ -1,10 +1,10 @@
 const express = require('express');
 const path = require('path');
-const notes = require('./db/db.json')
+const notes = require('./db/notes.json')
 const fs = require('fs')
 const uuid = require('./helpers/uuid');
 
-const PORT = 3001;
+const PORT = process.env.port || 3001;
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.use(express.static('public'));
 app.get('/notes', (req, res) =>
     res.sendFile(path.join(__dirname, '/public/notes.html'))
 );
-
+    
 app.get('/api/notes', (req, res) => {
     res.json(notes)
     console.info(`${req.method} request received to get reviews`);
@@ -32,30 +32,25 @@ app.post('/api/notes', (req, res) => {
         text,
         id: uuid(),
       };
+      notes.push(newNote)
+    fs.writeFile('./db/notes.json',JSON.stringify(notes, null, 4),(writeErr) =>
+        writeErr ? console.error(writeErr) : console.info('Successfully updated reviews!')
+    );
+    res.send(notes)
+    }
+    });
 
-      fs.readFile('./db/db.json', 'utf8', (err, data) => {
-        if (err) {
-          console.error(err);
-        } else {
-          const parsedNotes = JSON.parse(data);
-          parsedNotes.push(newNote);
-          fs.writeFile('./db/db.json',JSON.stringify(parsedNotes, null, 4),(writeErr) =>
+app.delete('/api/notes/:id', (req, res) => {
+    var id = req.params.id
+    var note = notes.map((notes)=> {return notes.id})
+    var selected = note.indexOf(id)
+    notes.splice(selected, 1)
+    fs.writeFile('./db/notes.json',JSON.stringify(notes, null, 4),(writeErr) =>
               writeErr ? console.error(writeErr) : console.info('Successfully updated reviews!')
           );
-        }
-      });
-  
-      const response = {
-        status: 'success',
-        body: newNote,
-      };
-  
-      console.log(response);
-      res.json(response);
-    } else {
-      res.json('Error in posting notes');
-    }
-  });
+    res.json({})
+})
+
   
 
 app.get('/*', (req, res) =>
