@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const notes = require('./db/db.json')
 const fs = require('fs')
+const uuid = require('./helpers/uuid');
 
 const PORT = 3001;
 
@@ -18,6 +19,7 @@ app.get('/notes', (req, res) =>
 
 app.get('/api/notes', (req, res) => {
     res.json(notes)
+    console.info(`${req.method} request received to get reviews`);
 });
 
 app.post('/api/notes', (req, res) => {
@@ -28,7 +30,7 @@ app.post('/api/notes', (req, res) => {
       const newNote = {
         title,
         text,
-        // note_id: uuid(),
+        id: uuid(),
       };
 
       fs.readFile('./db/db.json', 'utf8', (err, data) => {
